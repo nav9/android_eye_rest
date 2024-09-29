@@ -125,7 +125,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final activity = ref.watch(activityProvider); // Correctly use ref here
     return Scaffold(
-      appBar: AppBar(title: Text('Activity Recorder')),
+      appBar: AppBar(title: Text('Eye Rest')),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
