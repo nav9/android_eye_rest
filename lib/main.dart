@@ -11,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 final activityProvider = ChangeNotifierProvider<ActivityProvider>((ref) {return ActivityProvider();});
 
 class ActivityProvider extends ChangeNotifier {
+  double _duration = 20; // Default value for the slider
   final DatabaseHelper _dbHelper = DatabaseHelper();
   String _activityLog = '';
   double _counter = 0;
@@ -23,6 +24,11 @@ class ActivityProvider extends ChangeNotifier {
   ActivityProvider() {
     _startCounterTimer();
     _loadRecentLogs();
+  }
+
+  void setDuration(double duration) {
+    _duration = duration;
+    notifyListeners();
   }
 
   Future<void> exportLogsToFile() async {
@@ -51,7 +57,7 @@ class ActivityProvider extends ChangeNotifier {
 
   void _startCounterTimer() {
     _timer = Timer.periodic(Duration(minutes: 1), (timer) {
-      if (_counter < 20) {
+      if (_counter < _duration) {
         _counter++;
         notifyListeners();
       }
@@ -59,7 +65,7 @@ class ActivityProvider extends ChangeNotifier {
   }
 
   void incrementCounter() {
-    if (_counter < 20) {
+    if (_counter < _duration) {
       _counter++;
       notifyListeners();
       _checkForNotification();
@@ -67,11 +73,11 @@ class ActivityProvider extends ChangeNotifier {
   }
 
   void decrementCounter() {
-    if (_counter > 0) {_counter -= 1 / 20;notifyListeners();}
+    if (_counter > 0) {_counter -= 1 / _duration;notifyListeners();}
   }
 
   void _checkForNotification() {
-    if (_counter >= 20) {_showNotification();}
+    if (_counter >= _duration) {_showNotification();}
   }
 
   Future<void> _showNotification() async {
@@ -81,7 +87,7 @@ class ActivityProvider extends ChangeNotifier {
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
     const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails('activity_channel', 'Activity Notifications', importance: Importance.max, priority: Priority.high,);
     const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
-    await flutterLocalNotificationsPlugin.show(0, 'Time to Take a Rest!', 'You have reached 20 minutes of activity. Consider taking a break.', platformChannelSpecifics, payload: 'item x',);
+    await flutterLocalNotificationsPlugin.show(0, 'Time to Take a Rest!', 'You have reached ${_duration} minutes of activity. Consider taking a break.', platformChannelSpecifics, payload: 'item x',);
   }
 
   @override
@@ -104,6 +110,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  double _duration = 20; // Default value for the slider
   @override
   void initState() {
     super.initState();
@@ -144,6 +151,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(activity.activityLog, style: TextStyle(fontSize: 16)),
+              SizedBox(height: 20),
+              Text('Duration: ${_duration.toStringAsFixed(0)} minutes', style: TextStyle(fontSize: 18)),
+              Slider(value: _duration, min: 5, max: 40, divisions: 35, label: _duration.round().toString(),
+                onChanged: (double value) {setState(() {_duration = value;});
+                  // Update the ActivityProvider with the new duration if needed
+                  activity.setDuration(value);
+                },
+              ),
               SizedBox(height: 20),
               Text('Counter: ${activity.counter.toStringAsFixed(2)}', style: TextStyle(fontSize: 20)),
               SizedBox(height: 20),
