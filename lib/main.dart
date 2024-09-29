@@ -26,17 +26,12 @@ class ActivityProvider with ChangeNotifier {
   void _checkForNotification() {if (_counter >= 20) {_showNotification();}}
 
   Future<void> _showNotification() async {
-    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
-    const AndroidInitializationSettings initializationSettingsAndroid =
-    AndroidInitializationSettings('@mipmap/ic_launcher');
-    final InitializationSettings initializationSettings =
-    InitializationSettings(android: initializationSettingsAndroid);
+    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
+    final InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-    AndroidNotificationDetails('activity_channel', 'Activity Notifications', importance: Importance.max, priority: Priority.high,);
-    const NotificationDetails platformChannelSpecifics =
-    NotificationDetails(android: androidPlatformChannelSpecifics);
+    const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails('activity_channel', 'Activity Notifications', importance: Importance.max, priority: Priority.high,);
+    const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
     await flutterLocalNotificationsPlugin.show(0, 'Time to Take a Rest!', 'You have reached 20 minutes of activity. Consider taking a break.', platformChannelSpecifics, payload: 'item x',);
   }
 
