@@ -6,6 +6,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'database_helper.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+//import 'package:is_lock_screen/is_lock_screen.dart';
+//import 'package:is_lock_screen2/is_lock_screen2.dart';
 
 // Define a ChangeNotifierProvider for the ActivityProvider
 final activityProvider = ChangeNotifierProvider<ActivityProvider>((ref) {return ActivityProvider();});
@@ -65,12 +67,20 @@ class ActivityProvider extends ChangeNotifier {
   }
 
   void incrementCounter() {
+    // getLockScreenState().then((screenLocked) {if (screenLocked?? false) {
+    //   logActivity('THE STATE IS NOW ${screenLocked}');
+    // }});
+
     if (_counter < _duration) {
       _counter++;
       notifyListeners();
       _checkForNotification();
     }
   }
+
+  // Future<bool?> getLockScreenState() async {
+  //   return await isLockScreen();
+  // }
 
   void decrementCounter() {
     if (_counter > 0) {_counter -= 1 / _duration;notifyListeners();}
@@ -117,7 +127,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // Listen for system events for lock/unlock
     SystemChannels.lifecycle.setMessageHandler((msg) {
       final activityNotifier = ref.read(activityProvider.notifier);
-      if (msg == AppLifecycleState.paused.toString()) {
+      //TODO: try https://stackoverflow.com/questions/73441348/how-to-check-phone-lock-screen-state
+      if (msg == AppLifecycleState.paused.toString()) {//TODO: UNFORTUNATELY THIS MATCHES EVEN IF USER SWITCHES TO ANOTHER APP
         activityNotifier.logActivity('LOCKED');
         activityNotifier.decrementCounter();
       } else if (msg == AppLifecycleState.resumed.toString()) {
