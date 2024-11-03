@@ -31,11 +31,12 @@ class DatabaseHelper {
     );
   }
 
-  Future<void> insertLog(String log) async {
+  Future<void> insertLog(String date, String status) async {
     final db = await database;
     await db.insert(
       'irest',
-      {'datetime': DateTime.now().toIso8601String(), 'log': log},
+      //{'datetime': DateTime.now().toIso8601String(), 'status': status},
+      {'datetime': date, 'status': status},
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }

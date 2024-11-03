@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'database_helper.dart';
 import 'dart:io';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 //import 'package:is_lock_screen/is_lock_screen.dart';
 //import 'package:is_lock_screen2/is_lock_screen2.dart';
@@ -37,32 +38,30 @@ class ActivityProvider extends ChangeNotifier {
     final logs = await _dbHelper.exportLogs();
     final directory = await getApplicationDocumentsDirectory();
     final file = File('${directory.path}/activity_logs.txt');
-
-    String content = logs.map((log) => '${log['datetime']}: ${log['log']}').join('\n');
-
+    String content = logs.map((log) => '${log['datetime']}: ${log['status']}').join('\n');
     await file.writeAsString(content);
   }
 
   Future<void> _loadRecentLogs() async {
     final logs = await _dbHelper.getLastLogs();
-    _recentLogs = logs.map((log) => '${log['datetime']}: ${log['log']}').toList();
+    _recentLogs = logs.map((log) => '${log['datetime']}: ${log['status']}').toList();
     notifyListeners();
   }
 
   void logActivity(String status) async {
-    final dateTime = DateTime.now().toString();
+    final formatter = DateFormat('dd MMM yyyy HH:mm:ss');
+    final dateTime = formatter.format(DateTime.now());
+
+    //print(dateTime);
     _activityLog += '$dateTime $status\n';
-    await _dbHelper.insertLog('[$dateTime] $status');
+    await _dbHelper.insertLog(dateTime, status);
     await _loadRecentLogs();
     notifyListeners();
   }
 
   void _startCounterTimer() {
     _timer = Timer.periodic(Duration(minutes: 1), (timer) {
-      if (_counter < _duration) {
-        _counter++;
-        notifyListeners();
-      }
+      if (_counter < _duration) {incrementCounter();}
     });
   }
 
@@ -83,7 +82,7 @@ class ActivityProvider extends ChangeNotifier {
   // }
 
   void decrementCounter() {
-    if (_counter > 0) {_counter -= 1 / _duration;notifyListeners();}
+    if (_counter > 0) {_counter -= 1 / _duration; notifyListeners();}
   }
 
   void _checkForNotification() {
@@ -144,7 +143,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final activity = ref.watch(activityProvider); // Correctly use ref here
     return Scaffold(
       appBar: AppBar(
-        title: Text('Activity Recorder'),
+        title: Text('Eye rest & activity'),
         actions: [
           IconButton(
             icon: Icon(Icons.sd_storage_outlined),
@@ -164,14 +163,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               Text(activity.activityLog, style: TextStyle(fontSize: 16)),
               SizedBox(height: 20),
               Text('Duration: ${_duration.toStringAsFixed(0)} minutes', style: TextStyle(fontSize: 18)),
-              Slider(value: _duration, min: 5, max: 40, divisions: 35, label: _duration.round().toString(),
+              Slider(value: _duration, min: 5, max: 40, divisions: 35, label: _duration.round().toString(), activeColor: Colors.white38,
                 onChanged: (double value) {setState(() {_duration = value;});
                   // Update the ActivityProvider with the new duration if needed
                   activity.setDuration(value);
                 },
               ),
               SizedBox(height: 20),
-              Text('Counter: ${activity.counter.toStringAsFixed(2)}', style: TextStyle(fontSize: 20)),
+              Text('Minutes strained: ${activity.counter.toStringAsFixed(2)}', style: TextStyle(fontSize: 20)),
               SizedBox(height: 20),
               Text('Recent Logs:', style: TextStyle(fontSize: 18)),
               ...activity.recentLogs.map((log) => Text(log)).toList(),
