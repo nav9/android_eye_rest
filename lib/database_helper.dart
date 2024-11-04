@@ -35,20 +35,22 @@ class DatabaseHelper {
     final db = await database;
     await db.insert(
       'irest',
-      //{'datetime': DateTime.now().toIso8601String(), 'status': status},
-      {'datetime': date, 'status': status},
+      {'datetime': date, 'log': status}, // Change 'status' to 'log'
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
+
 
   Future<List<Map<String, dynamic>>> getLastLogs() async {
     final db = await database;
     return await db.query(
       'irest',
+      columns: ['datetime', 'log'], // Ensure you select both columns
       orderBy: 'datetime DESC',
       limit: 10,
     );
   }
+
 
   Future<List<Map<String, dynamic>>> exportLogs() async {
     final db = await database;
